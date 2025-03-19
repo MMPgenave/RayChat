@@ -1,13 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
-
 import { Applayout } from "./components/layouts/AppLayout";
-
 import NoMatch from "./pages/NoMatch";
+import Home from "./pages/Home";
+import Agent from "./pages/Agent";
+import Client from "./pages/Cient";
+import ClientChatPage from "./pages/ClientChatPage";
+import AgentChatPage from "./pages/AgentChatPage";
 import Dashboard from "./pages/Dashboard";
-import Empty from "./pages/Empty";
-import Sample from "./pages/Sample";
-import Registration from "./pages/Registration";
-
 export const router = createBrowserRouter(
   [
     {
@@ -19,19 +18,24 @@ export const router = createBrowserRouter(
           element: <Dashboard />,
         },
         {
-          path: "sample",
-          element: <Sample />,
+          path: "client",
+          element: <Client />,
         },
         {
-          path: "empty",
-          element: <Empty />,
+          path: "agent",
+          element: <Agent />,
         },
         {
-          path: "register",
-          element: <Registration />,
+          path: "clientChat",
+          element: <ClientChatPage />,
+        },
+        {
+          path: "agentChat",
+          element: <AgentChatPage />,
         },
       ],
     },
+
     {
       path: "*",
       element: <NoMatch />,

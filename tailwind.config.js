@@ -7,7 +7,7 @@ module.exports = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
     './index.html',
-	],
+  ],
   theme: {
     container: {
       center: true,
@@ -18,6 +18,11 @@ module.exports = {
     },
     extend: {
       colors: {
+        vichatBlue: '#5B4DFF',
+        vichatPurpleLight: '#C8B6FA',
+        vichatPurple: '#C8B6FA',
+        vichatPurpleDark: '#2F1673',
+        vichatGreen: "#3CD143",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -56,6 +61,7 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius)  + 6px)",
       },
       keyframes: {
         "accordion-down": {
@@ -71,6 +77,9 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      fontFamily: {
+        iranian: ['Iranian', 'sans-serif']
+      }
     },
   },
   plugins: [require("tailwindcss-animate")],
