@@ -8,7 +8,7 @@ const AgentClientsConversation = ({ Conversation }: { Conversation: IConversatio
   const [textareaValue, setTextareaValue] = useState("");
   const user = useSelector((state: RootState) => state.auth.user);
 
-  console.log(`Conversation:${JSON.stringify(Conversation, undefined, 2)}`);
+  // console.log(`Conversation:${JSON.stringify(Conversation, undefined, 2)}`);
   function handleSubmit() {
     socket.emit("agent-message", { clientId: Conversation.clientId, text: textareaValue });
     const message = {
@@ -33,18 +33,22 @@ const AgentClientsConversation = ({ Conversation }: { Conversation: IConversatio
   }
 
   return (
-    <div className=" relative h-[380px]">
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-4 h-[320px] p-2">
+    <div className=" relative border  h-full">
+      <div className="flex flex-col overflow-y-auto scrollbar-hide h-[90%] pb-4 p-4  ">
         {Conversation.messages.map((message: IMessage) => {
           return (
             <div key={message.id} className={`flex ${message.isFromAgent ? "justify-start" : "justify-end"} mb-2`}>
-              <div
-                className={`rounded-lg p-3 max-w-[15rem] ${
-                  message.isFromAgent ? "bg-blue-500 text-white" : "bg-green-500 text-black"
-                }`}
-              >
-                <p>{message.text}</p>
-                <span className="text-xs text-black block mt-1">
+              <div className={`flex flex-col  ${message.isFromAgent ? " " : " items-end"}`}>
+                <p
+                  className={` p-3 max-w-[15rem] text-[16px] rounded-t-[12px] ${
+                    message.isFromAgent
+                      ? "bg-white text-black rounded-bl-[12px]"
+                      : "bg-[#841474] text-white  rounded-br-[12px] "
+                  }`}
+                >
+                  {message.text}
+                </p>
+                <span className="text-[10px] text-black block mt-1">
                   {new Date(Number(message.timestamp)).toLocaleTimeString()}
                 </span>
               </div>
@@ -53,7 +57,7 @@ const AgentClientsConversation = ({ Conversation }: { Conversation: IConversatio
         })}
       </div>
 
-      <div className=" absolute w-full bottom-[0px] rounded-sm bg-[#E0E0E0] pt-2 pr-6 pb-2 pl-3 flex items-center justify-between">
+      <div className=" absolute w-[95%] left-[50%] transform -translate-x-1/2 bottom-[14px] rounded-[11px] bg-[#F5F5F5] border-[1px] border-[#BBBBBB] pt-2 pr-6 pb-2 pl-3 flex items-center justify-between">
         <textarea
           value={textareaValue}
           onChange={(e) => setTextareaValue(e.target.value)}

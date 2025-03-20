@@ -52,18 +52,22 @@ const Chat = () => {
             <div className=" text-white/80">پاسخگوی سوالات شما هستیم</div>
           </div>
         </div>
-        <div className=" h-[450px] bg-white border border-[#E0E0E0] rounded-b-xl ">
+        <div className=" h-[550px] bg-white border border-[#E0E0E0] rounded-b-xl ">
           <div className="flex flex-col h-full bg-gray-100 rounded-b-xl p-4 ">
             <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
               {messages.map((message) => (
                 <div key={message.id} className={`flex ${message.isFromAgent ? "justify-start" : "justify-end"} mb-2`}>
-                  <div
-                    className={`rounded-lg p-3 max-w-[15rem] ${
-                      message.isFromAgent ? "bg-blue-500 text-white" : "bg-green-500 text-black"
-                    }`}
-                  >
-                    <p>{message.text}</p>
-                    <span className="text-xs text-gray-800 block mt-1">
+                  <div className={`flex flex-col  ${message.isFromAgent ? " " : " items-end"}`}>
+                    <p
+                      className={` p-3 max-w-[15rem] text-[16px] rounded-t-[12px] ${
+                        message.isFromAgent
+                          ? "bg-white text-black rounded-bl-[12px]"
+                          : "bg-[#5B4DFF] text-white  rounded-br-[12px] "
+                      }`}
+                    >
+                      {message.text}
+                    </p>
+                    <span className={`text-[10px] text-gray-700 block mt-1`}>
                       {new Date(Number(message.timestamp)).toLocaleTimeString()}
                     </span>
                   </div>
