@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { socket } from "@/socket";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useSocketOn } from "@/hooks/socket-hooks";
-import { IMessage } from "@/interfaces";
 const initialMessage = [
   {
     id: "1",
@@ -16,6 +15,7 @@ const initialMessage = [
 
 const Chat = () => {
   const [textareaValue, setTextareaValue] = useState("");
+  const chatContainerRef = useRef(null);
   const [messages, setMessages] = useState(initialMessage);
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -38,6 +38,16 @@ const Chat = () => {
     messagesCopy.push(Message);
     setMessages(messagesCopy);
   });
+  // when the chat rendered, go automatically to bottom of this chat
+  // Function to scroll to the bottom
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
   return (
     <div>
       <div className=" text-center font-bold text-xl">{user.name}</div>
@@ -71,6 +81,8 @@ const Chat = () => {
                       {new Date(Number(message.timestamp)).toLocaleTimeString()}
                     </span>
                   </div>
+                  {/* Empty div to act as a scroll target */}
+                  <div ref={chatContainerRef} />
                 </div>
               ))}
             </div>

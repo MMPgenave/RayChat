@@ -1,24 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSocketOn } from "@/hooks/socket-hooks";
 import { IClient, IConversation } from "@/interfaces";
 import AgentClientsConversation from "./AgentClientsConversation";
 import { toast } from "react-toastify";
+import { socket } from "@/socket";
 const AgentChat = () => {
-  const [clients, setClients] = useState<IClient[]>([]);
   const [conversations, setConversations] = useState<IConversation[]>([]);
   const [specificUserConversation, setSpecificUserConversation] = useState<IConversation>({
     clientId: "",
     messages: [],
     unread: 0,
   });
+  const [activeClient, setActiveClient] = useState<number>(-1);
+
   useSocketOn("existing-conversations", (data) => {
     setConversations(data.conversations);
-    setClients(data.clients);
   });
+
+  // اگر مکالمه از طرف کاربری میاد که الان ایجنت روی چتشه، چت رو رفرش کن که مکالمه نشون داده بشه
+  useEffect(() => {
+    for (let index = 0; index < conversations.length; index++) {
+      if (conversations[index].clientId === specificUserConversation.clientId) {
+        handleUserMessages(specificUserConversation.clientId);
+      }
+    }
+  }, [activeClient !== -1 && conversations[activeClient].messages.length]);
+
   useSocketOn("user-connected", (data) => {
-    const newClient = { id: data.clientId, socketId: "new", name: data.name };
-    const newClients = [...clients, newClient];
-    setClients(newClients);
     const conversationCopy = [...conversations];
     conversationCopy.push(data.conversation);
     setConversations(conversationCopy);
@@ -30,57 +38,50 @@ const AgentChat = () => {
     for (let index = 0; index < ConversationsCopy.length; index++) {
       // console.log(`clientId:${JSON.stringify(ConversationsCopy[index].clientId, undefined, 2)}`);
       if (ConversationsCopy[index].clientId === data.conversation.clientId) {
-        ConversationsCopy[index].messages.push(data.message);
-        // console.log(
-        //   `ConversationsCopy[index].messages:${JSON.stringify(ConversationsCopy[index].messages, undefined, 2)}`
-        // );
+        ConversationsCopy[index] = data.conversation;
         setConversations(ConversationsCopy);
       }
     }
   });
 
-  // console.log(`clients:${JSON.stringify(clients, undefined, 2)}`);
-  console.log(`conversations:${JSON.stringify(conversations, undefined, 2)}`);
-  // console.log(`newUser:${JSON.stringify(newUser, undefined, 2)}`);
-
   function handleUserMessages(id: string) {
-    const userConversation: IConversation | undefined = conversations.find(
-      (conversation: IConversation) => conversation.clientId === id
-    );
-    if (userConversation) {
-      setSpecificUserConversation(userConversation);
-    } else {
-      toast.error("User conversation not found");
+    const conversationCopy = [...conversations];
+    for (let index = 0; index < conversations.length; index++) {
+      if (conversations[index].clientId === id) {
+        setActiveClient(index);
+        setSpecificUserConversation(conversations[index]);
+        conversationCopy[index].unread = 0;
+        break;
+      }
     }
-    console.log(`setSpecificUserConversation:${JSON.stringify(userConversation, undefined, 2)}`);
+    setConversations(conversationCopy);
+    socket.emit("reset unread to 0", id);
   }
 
-  // extract unread from conversation and display it in the client list
-  const unread = conversations.map((conversation) => conversation.unread);
-
   return (
-    <div className=" flex h-[87vh]  ">
+    <div className=" flex h-[77vh]  ">
       <div className=" w-1/5  border">
         <div className=" text-[20px] border-b py-3  text-center">لیست کاربران</div>
         <div className=" flex flex-col ">
-          {clients ? (
+          {conversations ? (
             <div>
-              {clients.map((client: { id: string; socketId: string; name: string }, index) => {
+              {conversations.map((conversation: IConversation) => {
+                const { clientId, unread } = conversation;
                 return (
                   <div
                     className={` flex flex-row-reverse gap-3 hover:font-bold hover:cursor-pointer items-center justify-center py-1  border-b  ${
-                      client.id === specificUserConversation.clientId && "bg-[#DBDBDB]"
+                      clientId === specificUserConversation.clientId && "bg-[#DBDBDB]"
                     } `}
-                    key={client.id}
-                    onClick={() => handleUserMessages(client.id)}
+                    key={clientId}
+                    onClick={() => handleUserMessages(clientId)}
                   >
-                    <div>{client.name}</div>
+                    <div>{clientId}</div>
                     <div
                       className={`h-5 w-5 flex items-center justify-center text-xs rounded-full bg-green-600 text-white ${
-                        unread[index] === 0 && "hidden"
+                        unread === 0 && "hidden"
                       }`}
                     >
-                      {unread[index] !== 0 && unread[index]}
+                      {unread}
                     </div>
                   </div>
                 );
@@ -91,7 +92,7 @@ const AgentChat = () => {
           )}
         </div>
       </div>
-      <div className=" w-4/5 bg-[#F0F0F0] ">
+      <div className=" w-4/5  bg-[#F0F0F0] ">
         {specificUserConversation.clientId !== "" && (
           <AgentClientsConversation Conversation={specificUserConversation} />
         )}
