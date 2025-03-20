@@ -22,7 +22,7 @@ export default function RegistrationForm({ type }: { type: string }) {
   });
 
   function onSubmit(values: z.infer<typeof registrationSchema>) {
-    console.log(values);
+    // console.log(values);
     if (type === "client") {
       socket.emit("register-user", { clientId: values.email, name: values.username });
       dispath(setUser({ clientId: values.email, name: values.username }));

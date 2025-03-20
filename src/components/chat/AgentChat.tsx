@@ -1,27 +1,60 @@
 import { useState } from "react";
 import { useSocketOn } from "@/hooks/socket-hooks";
-import { useCallback } from "react";
-import { IClient, IMessage, IConversation } from "@/interfaces";
+import { IClient, IConversation } from "@/interfaces";
 import AgentClientsConversation from "./AgentClientsConversation";
+import { toast } from "react-toastify";
 const AgentChat = () => {
-  const [clients, setClients] = useState([]);
-  const [conversations, setConversations] = useState([]);
-  const [conversation, setConversation] = useState([]);
-  useSocketOn(
-    "existing-conversations",
-    useCallback((data) => {
-      setConversations(data.conversations);
-      setClients(data.clients);
-    }, [])
-  );
+  const [clients, setClients] = useState<IClient[]>([]);
+  const [conversations, setConversations] = useState<IConversation[]>([]);
+  const [specificUserConversation, setSpecificUserConversation] = useState<IConversation>({
+    clientId: "",
+    messages: [],
+    unread: 0,
+  });
+  useSocketOn("existing-conversations", (data) => {
+    setConversations(data.conversations);
+    setClients(data.clients);
+  });
+  useSocketOn("user-connected", (data) => {
+    const newClient = { id: data.clientId, socketId: "new", name: data.name };
+    const newClients = [...clients, newClient];
+    setClients(newClients);
+    const conversationCopy = [...conversations];
+    conversationCopy.push(data.conversation);
+    setConversations(conversationCopy);
+  });
+  useSocketOn("new-user-message", (data) => {
+    const ConversationsCopy = [...conversations];
+    // find the coresponding client's message and attach the new-user-message to its message array
 
-  console.log(`clients:${JSON.stringify(clients, undefined, 2)}`);
-  console.log(`conversations:${JSON.stringify(conversations, undefined, 2)}`);
+    for (let index = 0; index < ConversationsCopy.length; index++) {
+      // console.log(`clientId:${JSON.stringify(ConversationsCopy[index].clientId, undefined, 2)}`);
+      if (ConversationsCopy[index].clientId === data.conversation.clientId) {
+        ConversationsCopy[index].messages.push(data.message);
+        console.log(
+          `ConversationsCopy[index].messages:${JSON.stringify(ConversationsCopy[index].messages, undefined, 2)}`
+        );
 
-  function handleUserConversations(id: string) {
-    const userConversation = conversations.filter((conversation: IConversation) => conversation.clientId === id);
-    setConversation(userConversation);
-    console.log(`user conversation:${JSON.stringify(userConversation, undefined, 2)}`);
+        setSpecificUserConversation({ ...specificUserConversation, messages: ConversationsCopy[index].messages });
+      }
+    }
+    setConversations(ConversationsCopy);
+  });
+
+  // console.log(`clients:${JSON.stringify(clients, undefined, 2)}`);
+  // console.log(`conversations:${JSON.stringify(conversations, undefined, 2)}`);
+  // console.log(`newUser:${JSON.stringify(newUser, undefined, 2)}`);
+
+  function handleUserMessages(id: string) {
+    const userConversation: IConversation | undefined = conversations.find(
+      (conversation: IConversation) => conversation.clientId === id
+    );
+    if (userConversation) {
+      setSpecificUserConversation(userConversation);
+    } else {
+      toast.error("User conversation not found");
+    }
+    console.log(`setSpecificUserConversation:${JSON.stringify(userConversation, undefined, 2)}`);
   }
   return (
     <div className=" flex">
@@ -34,8 +67,10 @@ const AgentChat = () => {
                 return (
                   <div
                     key={client.id}
-                    className=" py-1  border-b  text-center hover:bg-[#E3E3E3] hover:cursor-pointer"
-                    onClick={() => handleUserConversations(client.id)}
+                    className={`py-1  border-b  text-center hover:font-bold hover:cursor-pointer ${
+                      client.id === specificUserConversation.clientId && "bg-green-500"
+                    }`}
+                    onClick={() => handleUserMessages(client.id)}
                   >
                     {client.name}
                   </div>
@@ -47,8 +82,8 @@ const AgentChat = () => {
           )}
         </div>
       </div>
-      <div className=" flex-grow bg-[#F0F0F0]">
-        <AgentClientsConversation Conversation={conversation} />
+      <div className=" flex-grow bg-[#F0F0F0] ">
+        <AgentClientsConversation Conversation={specificUserConversation} />
       </div>
     </div>
   );
